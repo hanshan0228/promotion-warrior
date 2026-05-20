@@ -370,7 +370,7 @@ _run() {
   echo "============================================"
   
   # 发送启动通知
-  notify "✅ HeyGen 监控已启动" "每10分钟巡查 Reddit + X" "heygen" "calypso"
+  notify "✅ HeyGen 监控已启动" "每30分钟巡查全平台" "heygen" "calypso"
 
   while true; do
     echo ""
@@ -458,7 +458,7 @@ except: print(\"  (获取失败)\")
     echo "  (🟢 已激活 — 评论)"
 
     echo "[$(date '+%H:%M')] ======== 巡查结束 ========"
-    sleep 600
+    sleep 1800
   done
 }
 

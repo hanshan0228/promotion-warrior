@@ -383,7 +383,7 @@ bash -c 'source /tmp/heygen-monitor.sh; notify "🧪 测试通知" "Bark 推送�
 ### 启动 / 停止
 
 ```bash
-bash /tmp/heygen-monitor.sh start    # 启动后台巡查（每10分钟）
+bash /tmp/heygen-monitor.sh start    # 启动后台巡查（每30分钟）
 bash /tmp/heygen-monitor.sh stop     # 停止
 bash /tmp/heygen-monitor.sh status   # 查看运行状态
 bash /tmp/heygen-monitor.sh log      # 查看完整日志
