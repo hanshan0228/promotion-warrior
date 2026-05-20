@@ -292,6 +292,9 @@ Tier 3 — 追销
 | 10:00 AM | 🎬 YouTube | AI 视频测评视频下评论 | 每天 |
 | 5:00 PM | 🐦 X | AI 视频工具推荐帖 | 每天 |
 
+> **待激活平台** (配置账号后自动生效)：
+> 小红书、Instagram、Facebook、TikTok — 在 `accounts.md` 添加账号并设为 `active` 后自动加入巡查和定时任务
+
 定时发帖的内容模板来自 `content_library.md`。
 
 ---
@@ -390,13 +393,14 @@ bash /tmp/heygen-monitor.sh log      # 查看完整日志
 
 | 平台 | 状态 | 检查内容 |
 |------|------|----------|
-| Reddit | ✅ 已激活 | 未读消息数、最近评论状态（点赞/回复） |
-| X/Twitter | ✅ 已激活 | 新回复、新提及 |
-| YouTube | ✅ 已激活 | 最新评论动态 |
-| LinkedIn | ✅ 已激活 | 未读消息、对话动态 |
-| Instagram | ⏸ 预留 | 需配置账号后激活 |
-| Facebook | ⏸ 预留 | 需配置账号后激活 |
-| TikTok | ⏸ 预留 | 需配置账号后激活 |
+| Reddit | ✅ 已激活 | 未读消息、评论、帖子 |
+| X/Twitter | ✅ 已激活 | 新回复、新提及、自动回复 |
+| YouTube | ✅ 已激活 | 评论 |
+| LinkedIn | ✅ 已激活 | 帖子 |
+| 小红书 | ⏸ 待配置 | 需在 accounts.md 添加账号 |
+| Instagram | ⏸ 待配置 | 需在 accounts.md 添加账号 |
+| Facebook | ⏸ 待配置 | 需在 accounts.md 添加账号 |
+| TikTok | ⏸ 待配置 | 需在 accounts.md 添加账号 |
 
 ### 巡查日志解读
 

@@ -295,12 +295,14 @@ except: print(\"  (获取失败)\")
     echo "  (已激活 — 巡查结束时会发帖)"
     echo "--- LinkedIn ---"
     echo "  (已激活 — 有新消息通过通知提醒)"
+    echo "--- 小红书 ---"
+    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
     echo "--- Instagram ---"
-    echo "  (预留)"
+    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
     echo "--- Facebook ---"
-    echo "  (预留)"
+    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
     echo "--- TikTok ---"
-    echo "  (预留)"
+    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
 
     echo "[$(date '+%H:%M')] ======== 巡查结束 ========"
     sleep 600
