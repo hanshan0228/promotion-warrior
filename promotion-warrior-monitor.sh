@@ -76,7 +76,7 @@ autoreply() {
   local source="$1"
   
   if [ "$source" = "reddit" ]; then
-    echo "[AUTO-DM] Reddit: 检查未读..."
+    echo "[AUTO-DM] Reddit: 检查未读 + 自动回复..."
     R_INBOX=$(opencli reddit whoami -f json 2>/dev/null | python3 -c "
 import json,sys
 try:
@@ -87,8 +87,58 @@ try:
 except: print(0)
 " 2>/dev/null)
     if [ "$R_INBOX" -gt 0 ] 2>/dev/null; then
-      echo "  → Reddit $R_INBOX 条未读 (通知待人工处理)"
-      notify "🔴 Reddit 新消息" "有 $R_INBOX 条未读，可能需要回复"
+      echo "  → Reddit $R_INBOX 条未读 — 检查内容..."
+      # 通过 browser 获取私信内容并自动回复
+      AFF_LINK="https://www.heygen.com/?sid=rewardful&utm_content=creator&utm_medium=affiliate&via=samantha"
+      opencli browser bjudz9gq eval "
+(async function() {
+  // 获取 Reddit 未读私信
+  const inboxRes = await fetch('/message/inbox/.json?limit=10', {credentials:'include'});
+  const inbox = await inboxRes.json();
+  const children = inbox?.data?.children || [];
+  const results = [];
+  for (const msg of children) {
+    const data = msg?.data || {};
+    const body = (data.body || '').toLowerCase();
+    const author = data.author || '';
+    const kind = data.kind || '';
+    const subject = (data.subject || '').toLowerCase();
+    const fullname = data.name || '';
+    
+    // 检测关键词：问链接/工具
+    const keywords = ['link','tool','what','send','tell me','recommend','how','share','where','dm me','which','试用','推荐','链接'];
+    const isQuestion = keywords.some(k => body.includes(k) || subject.includes(k));
+    
+    if (isQuestion && author !== 'hanshan0228') {
+      // 自动回复
+      const replyText = 'Hey! I have been using HeyGen for my content — the lip-sync quality is the best I have tried. Here is my referral link if you want to check it out: $AFF_LINK No pressure!';
+      const replyRes = await fetch('/api/comment', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'thing_id=' + encodeURIComponent(fullname) + '&text=' + encodeURIComponent(replyText) + '&api_type=json'
+      });
+      const replyData = await replyRes.json();
+      const ok = replyData?.json?.errors?.length === 0;
+      results.push({author, replied: ok, body: body.substring(0,40)});
+    }
+  }
+  return JSON.stringify(results);
+})().catch(e => 'error:'+e.message)
+" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    data = json.load(sys.stdin)
+    if isinstance(data, list) and data:
+        for r in data:
+            status = '✅ 已回复' if r.get('replied') else '⏭ 跳过'
+            print(f'  {status} @{r.get(\"author\",\"?\")}: {r.get(\"body\",\"\")[:40]}')
+    else:
+        print('  (无需要回复的消息)')
+except:
+    print('  (检查完成)')
+" 2>/dev/null
+      notify "🔴 Reddit 已自动回复" "检测到 $R_INBOX 条未读并自动处理" "heygen" "glass"
     fi
   fi
   
@@ -265,13 +315,23 @@ post_scheduled() {
   case "$hour" in
     12|14|16|18|20|22)
       echo "  → 定时 Reddit 评论 (ET 整点)..."
+      AFF_LINK="https://www.heygen.com/?sid=rewardful&utm_content=creator&utm_medium=affiliate&via=samantha"
       for sub in "youtubers" "NewTubers" "artificial"; do
         opencli reddit search "AI video tool OR video creator OR best tool" --subreddit "$sub" --limit 3 -f json 2>/dev/null | python3 -c "
-import json,sys
+import json,sys,subprocess,random
 try:
     data = json.load(sys.stdin)
+    comments = [
+        'I have been testing a few AI video tools. For talking-head content, HeyGen has the most natural lip-sync I have seen.',
+        'If you are comparing AI avatar tools, the lip-sync quality is the #1 factor. HeyGen does this better than the rest.',
+        'Been using HeyGen for my YouTube channel. Cut production time from 8h to 45min per video. The quality is good enough for professional content.'
+    ]
     for p in data[:2]:
-        print(f'  r/{sub}: {p.get(\"title\",\"\")[:60]}')
+        post_id = p.get('id','')
+        comment = random.choice(comments)
+        # 通过 opencli 发评论
+        result = subprocess.run(['opencli','reddit','comment',post_id,comment], capture_output=True, text=True)
+        print(f'  r/{sub}: commented on {p.get(\"title\",\"\")[:40]} -> {result.stdout[:60]}')
 except: pass
 " 2>/dev/null
       done
