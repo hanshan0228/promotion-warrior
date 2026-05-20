@@ -110,9 +110,9 @@ try:
     if [ -n "$X_REPLIES" ]; then
       AFF_LINK="https://www.heygen.com/?sid=rewardful&utm_content=creator&utm_medium=affiliate&via=samantha"
       echo "$X_REPLIES" | while IFS='|' read author tweet_id text; do
-        echo "  → 检测到 @$author 问链接"
-        DM_MSG="Hey! Saw you asking about AI video tools. I have been using HeyGen for my content and the lip-sync quality is the best I have tried. Here is my referral link if you want to check it out: $AFF_LINK No pressure!"
-        opencli twitter reply-dm "$DM_MSG" 2>/dev/null && echo "  ✅ DM 已发送给 @$author"
+        echo "  → 检测到 @$author 问链接 → 公开回复引导 DM"
+        REPLY_TEXT="@${author} I have been testing a few options. For AI avatar / talking-head content, HeyGen has the best lip-sync I have seen. Happy to share more if you DM me!"
+        opencli twitter reply "https://x.com/i/status/$tweet_id" "$REPLY_TEXT" 2>/dev/null && echo "  ✅ 已回复 @$author (公开)"
         sleep 5
       done
     else
