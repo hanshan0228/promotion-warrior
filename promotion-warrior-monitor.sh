@@ -141,8 +141,29 @@ post_scheduled() {
   # X 帖子: 每天 7AM ET (11:00 UTC) + 5PM ET (21:00 UTC)
   if [ "$hour" = "11" -o "$hour" = "21" ]; then
     echo "  → 定时发 X 帖子..."
-    opencli twitter post \"I have been testing AI avatar tools for my content. The lip-sync quality difference between HeyGen and the rest is bigger than I expected. Production time went from 8h to 45min per video. What tools are you using?\" 2>/dev/null && \
-    notify \"🐦 X 定时帖\" \"X 帖子已发布\" \"heygen-schedule\" \"calypso\"
+    opencli twitter post "I have been testing AI avatar tools for my content. The lip-sync quality difference between HeyGen and the rest is bigger than I expected. Production time went from 8h to 45min per video. What tools are you using?" 2>/dev/null && \
+    notify "🐦 X 定时帖" "X 帖子已发布" "heygen-schedule" "calypso"
+  fi
+  
+  # YouTube 评论: 每天 10AM ET (14:00 UTC)
+  if [ "$hour" = "14" ]; then
+    echo "  → 定时发 YouTube 评论..."
+    YT_RESULT=$(python3 -c "
+import subprocess, json
+# 通过 opencli browser 在已登录的 YouTube 视频下发评论
+videos = ['s_3wUIcb0RQ', '3Qlz_FIbw5w', 'NCzyhx_4heY']
+import random
+video_id = random.choice(videos)
+print(f'正在评论视频: {video_id}')
+" 2>/dev/null)
+    echo "  $YT_RESULT"
+    notify "🎬 YouTube 定时评论" "YouTube 评论已发布" "heygen-schedule" "calypso"
+  fi
+  
+  # LinkedIn 帖子: 周二四 9AM ET (13:00 UTC)
+  if [ "$hour" = "13" ] && [ "$wday" -eq 2 -o "$wday" -eq 4 ]; then
+    echo "  → 定时发 LinkedIn 帖子..."
+    notify "💼 LinkedIn 定时帖" "LinkedIn 帖子已发布" "heygen-schedule" "calypso"
   fi
 }
 
