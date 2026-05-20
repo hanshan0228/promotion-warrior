@@ -397,10 +397,10 @@ bash /tmp/heygen-monitor.sh log      # 查看完整日志
 | X/Twitter | ✅ 已激活 | 新回复、新提及、自动回复 |
 | YouTube | ✅ 已激活 | 评论 |
 | LinkedIn | ✅ 已激活 | 帖子 |
-| 小红书 | ⏸ 待配置 | 需在 accounts.md 添加账号 |
-| Instagram | ⏸ 待配置 | 需在 accounts.md 添加账号 |
-| Facebook | ⏸ 待配置 | 需在 accounts.md 添加账号 |
-| TikTok | ⏸ 待配置 | 需在 accounts.md 添加账号 |
+| 小红书 | ✅ 已激活 | 评论、帖子 |
+| Instagram | ✅ 已激活 | 评论、帖子 |
+| Facebook | ✅ 已激活 | 评论、群组帖子 |
+| TikTok | ✅ 已激活 | 评论 |
 
 ### 巡查日志解读
 

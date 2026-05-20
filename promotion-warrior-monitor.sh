@@ -296,13 +296,13 @@ except: print(\"  (获取失败)\")
     echo "--- LinkedIn ---"
     echo "  (已激活 — 有新消息通过通知提醒)"
     echo "--- 小红书 ---"
-    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
+    echo "  (🟢 已激活 — 可发评论)"
     echo "--- Instagram ---"
-    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
+    echo "  (🟢 已激活 — 可发评论)"
     echo "--- Facebook ---"
-    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
+    echo "  (🟢 已激活 — 可发评论、群组帖)"
     echo "--- TikTok ---"
-    echo "  (⏸ 待配置 — 在 accounts.md 添加账号后自动激活)"
+    echo "  (🟢 已激活 — 可发评论)"
 
     echo "[$(date '+%H:%M')] ======== 巡查结束 ========"
     sleep 600

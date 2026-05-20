@@ -129,7 +129,7 @@ models:
 
 api_keys:
   deepseek:
-    - "YOUR_DEEPSEEK_API_KEY"
+    - "sk-13dbb367f60841d6981b0e2ce24fd722"
 
   daily_limit_per_key:
     deepseek: 1000
@@ -197,14 +197,14 @@ conversion:
 
 ```yaml
 platforms:
-  xiaohongshu: false
+  xiaohongshu: true
   weibo: false
   douyin: false
-  instagram: false
+  instagram: true
   twitter_x: true
-  facebook: false
+  facebook: true
   reddit: true
-  tiktok: false
+  tiktok: true
 ```
 
 ---
@@ -230,7 +230,7 @@ review_mode: false         # 用户已确认内容风格，改为自动执行
 
 ```yaml
 bark:
-  key: "YOUR_BARK_KEY"
+  key: "x23x7UumVP3ZZgENJGZ6M8"
   # https://api.day.app/{key}/  — 从 Bark App 获取
   enabled: true
   notify_on:
