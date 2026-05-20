@@ -21,7 +21,7 @@
 
 | 账号名 | 状态 | 人设文件 | Karma | 今日评论 | 今日私信 | 注册天数 | 备注 |
 |--------|------|----------|-------|----------|----------|----------|------|
-| u/Last_Ad_9446 | active | en_persona_2 | — | 0/15 | 0/5 | — | HeyGen affiliate 主力号 |
+| u/hanshan0228 | active | en_persona_2 | — | 0/15 | 0/5 | — | HeyGen affiliate 主力号 |
 
 > ⚠️ 建议当前账号已有一定 karma 后再开始评论，避免被 subreddit AutoMod 拦截。
 > Reddit 新号建议先在 AI/tech 相关 subreddit 正常参与讨论 3-5 天积累 karma，
