@@ -8,7 +8,7 @@ description: |
   用户价值分层、竞品内容分析、热点感知、效果追踪与 ROI 分析。
   所有内容生成均以提供真实价值为前提，遵循各平台社区规范。
   当用户说"帮我写评论""生成私信内容""分析竞品""制定内容策略""追踪互动效果"等时触发。
-version: "8.0.0"
+version: "8.1.0"
 tags: [social-media, content-strategy, community, marketing, chinese, english]
 data_dir: "~/.openclaw/skills/promotion-warrior/data/"
 ---
@@ -275,8 +275,8 @@ Tier 3 — 追销
 ```
 
 **当前支持的平台：**
-- X/Twitter ✅ — 检测回复/提及中的关键词，自动 DM
-- Reddit ⏸ — 待接入（需要进一步权限配置）
+- 🔴 Reddit ✅ — 检测未读消息中的关键词（link/tool/recommend/链接/推荐），自动回复 affiliate link
+- 🐦 X/Twitter ✅ — 检测回复/提及中的关键词，自动公开回复引导 DM
 
 ### 定时发帖（新增）
 
@@ -424,8 +424,29 @@ bash /tmp/heygen-monitor.sh log      # 查看完整日志
 1. 在 `accounts.md` 中配置该平台的账号
 2. 在监控脚本对应平台区块取消注释即可
 
-**当前已激活平台：** Reddit + X/Twitter
+**当前已激活平台：** Reddit + X/Twitter + YouTube + LinkedIn + 小红书 + Instagram + Facebook + TikTok
 **追加新平台时执行：** `opencli <platform> <command>` 测试连通性
+
+---
+
+### 内容轮换策略
+
+定时帖从 3 个模板中**随机选取**，避免重复内容判定：
+
+```
+模板 A: "I spent 30 days testing AI avatar tools. HeyGen has the best lip-sync quality."
+模板 B: "Been testing HeyGen vs Synthesia. The lip-sync difference is massive."  
+模板 C: "If you're struggling with talking-head videos, HeyGen is the most natural I've tested."
+```
+
+### 失败重试 & 告警
+
+| 场景 | 行为 |
+|------|------|
+| X 发帖超时 | 自动重试 2 次，间隔 30 秒 |
+| 全部重试失败 | 推送 ❌ 告警到 iPhone（alarm 声音） |
+| Reddit API 错误 | 记录日志，跳过本轮 |
+| 巡查超时 | 15 秒自动 kill，下轮继续 |
 
 ---
 
