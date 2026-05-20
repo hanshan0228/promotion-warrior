@@ -73,49 +73,50 @@ log() {
 
 # ===== 自动回复 DM =====
 autoreply() {
-  local source="$1"  # "reddit" or "x"
+  local source="$1"
   
   if [ "$source" = "reddit" ]; then
-    echo "[AUTO-DM] 检查 Reddit 私信..."
-    # 通过 opencli 检查 Reddit 未读
-    opencli reddit whoami -f json 2>/dev/null | python3 -c "
+    echo "[AUTO-DM] Reddit: 检查未读..."
+    R_INBOX=$(opencli reddit whoami -f json 2>/dev/null | python3 -c "
 import json,sys
 try:
     data = json.load(sys.stdin)
     d = {i['field']:i['value'] for i in data}
     inbox = int(d.get('Inbox Count','0'))
-    print(f'未读: {inbox}')
-except: pass
-" 2>/dev/null
-    # Reddit 自动回复需要用户确认后才能完全自动化，暂时标记
+    print(inbox)
+except: print(0)
+" 2>/dev/null)
+    if [ "$R_INBOX" -gt 0 ] 2>/dev/null; then
+      echo "  → Reddit $R_INBOX 条未读 (通知待人工处理)"
+      notify "🔴 Reddit 新消息" "有 $R_INBOX 条未读，可能需要回复"
+    fi
   fi
   
   if [ "$source" = "x" ]; then
-    echo "[AUTO-DM] 检查 X 提及..."
-    X_REPLIES=$(opencli twitter notifications --limit 10 -f json 2>/dev/null | python3 -c "
+    echo "[AUTO-DM] X: 检查提及..."
+    X_REPLIES=$(opencli twitter notifications --limit 15 -f json 2>/dev/null | python3 -c "
 import json,sys
 try:
     data = json.load(sys.stdin)
     replies = [n for n in data if n.get('type') in ('reply','mention')]
+    keywords = ['link','tool','what','send','tell me','recommend','how','share','where','dm me','which']
     for n in replies:
-        text = n.get('text','')
+        text = n.get('text','').lower()
         author = n.get('author','')
-        # 检测关键词：问链接/工具
-        keywords = ['link','tool','what','send','tell me','recommend','how','share','where','dm me']
-        if any(k in text.lower() for k in keywords):
-            tweet_id = n.get('id','')
-            print(f'{author}|{tweet_id}|{text[:80]}')
+        if any(k in text for k in keywords):
+            print(f\"{author}|{n.get('id','')}|{text[:60]}\")
 " 2>/dev/null)
     
     if [ -n "$X_REPLIES" ]; then
+      AFF_LINK="https://www.heygen.com/?sid=rewardful&utm_content=creator&utm_medium=affiliate&via=samantha"
       echo "$X_REPLIES" | while IFS='|' read author tweet_id text; do
-        echo "  → 回复 @$author: 询问链接"
-        # 自动发 DM 带 affiliate link
-        AFF_LINK=\"https://www.heygen.com/?sid=rewardful\\&utm_content=creator\\&utm_medium=affiliate\\&via=samantha\"
-        DM_TEXT=\"Hey! Saw you were asking about AI video tools. I have been using HeyGen for my content and it is honestly great — the lip-sync quality is the best I have tried. Here is my referral link if you want to check it out: \$AFF_LINK No pressure!\"
-        opencli twitter reply-dm \"@$author $DM_TEXT\" 2>/dev/null && echo "  ✅ DM 已发送给 @$author"
+        echo "  → 检测到 @$author 问链接"
+        DM_MSG="Hey! Saw you asking about AI video tools. I have been using HeyGen for my content and the lip-sync quality is the best I have tried. Here is my referral link if you want to check it out: $AFF_LINK No pressure!"
+        opencli twitter reply-dm "$DM_MSG" 2>/dev/null && echo "  ✅ DM 已发送给 @$author"
         sleep 5
       done
+    else
+      echo "  (无新提及)"
     fi
   fi
 }
@@ -282,7 +283,8 @@ except: print(\"  (获取失败)\")
       rm -f /tmp/heygen-monitor.state
     fi
 
-    # ----- 自动回复 DM -----
+    # ----- 自动回复 DM (全平台) -----
+    autoreply "reddit" 2>/dev/null &
     autoreply "x" 2>/dev/null &
 
     # ----- 定时发帖 -----
