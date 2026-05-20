@@ -168,6 +168,22 @@ conversion:
 
   # Affiliate link — only shared in DMs, never in public comments
   affiliate_link: "https://www.heygen.com/?sid=rewardful&utm_content=creator&utm_medium=affiliate&via=samantha"
+
+  # === 转化追踪配置 ===
+  tracking:
+    enabled: true
+    # 每个渠道用不同的 utm_content 追踪来源
+    sources:
+      reddit_comment: "reddit-comment"
+      reddit_post: "reddit-post"
+      x_reply: "x-reply"
+      x_post: "x-post"
+      youtube_comment: "youtube-comment"
+      linkedin_post: "linkedin-post"
+    
+    # 发 DM 时自动替换 utm_content 到对应来源
+    # 示例: DM 来自 Reddit 评论回复 → link?utm_content=reddit-comment
+    auto_tag: true
 ```
 
 > ⚠️ Affiliate 链接投放规则：

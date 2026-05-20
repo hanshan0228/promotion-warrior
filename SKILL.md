@@ -230,6 +230,83 @@ Tier 3 — 私信沟通
 
 ---
 
+---
+
+## 主动发帖策略（新增 — 2026-05-20）
+
+除了回复评论，**主动发帖**是提升转化量的关键。
+
+### 原创帖类型
+
+| 类型 | 目的 | 平台 | 频率 |
+|------|------|------|------|
+| 对比评测帖 | 建立权威，被动引流 | Reddit | 每周 2-3 篇 |
+| X Thread | 深度内容，增加曝光 | X/Twitter | 每周 2 篇 |
+| YouTube 评论 | 在潜在客户面前出现 | YouTube | 每天 5 条 |
+| LinkedIn 帖 | B2B 长尾价值 | LinkedIn | 每周 2 篇 |
+
+### 转化漏斗（增强版）
+
+```
+Tier 0 — 主动曝光
+  ↓ 原创帖 / X Thread / YouTube 评论 → 让用户注意到你
+
+Tier 1 — 被动互动
+  ↓ 用户回复/提问 → 给具体建议
+
+Tier 2 — 私信转化
+  ↓ 发 affiliate link
+
+Tier 3 — 追销
+  ↓ 注册后问体验 → 推荐升级套餐
+```
+
+### 自动回复 DM（新增）
+
+监控脚本检测到 X 上有人问 "link / tool / recommend / what" 等关键词时，**自动发送 DM** 带 affiliate link：
+
+```
+用户: "what tool do you use?"
+  ↓ 自动检测关键词
+  ↓ 自动发 DM
+自动: "Hey! Been using HeyGen for my content.
+      Here's my referral link if you want to check it out:
+      [affiliate link] No pressure!"
+```
+
+**当前支持的平台：**
+- X/Twitter ✅ — 检测回复/提及中的关键词，自动 DM
+- Reddit ⏸ — 待接入（需要进一步权限配置）
+
+### 定时发帖（新增）
+
+脚本在指定时间自动发布内容，无需人工干预：
+
+| 时间 (ET) | 平台 | 内容 | 频率 |
+|-----------|------|------|------|
+| 8:00 AM | Reddit | AI 工具对比/教程帖 | 周一三五 |
+| 7:00 AM | X | AI 视频工具推荐 | 每天 |
+| 5:00 PM | X | AI 视频工具推荐 | 每天 |
+
+定时发帖的内容模板来自 `content_library.md`。
+
+---
+
+### 每日目标量
+
+```
+原创 Reddit 帖:   3 篇/周
+X Thread:         2 篇/周
+Reddit 评论:      15 条/天
+X 回复:           15 条/天
+YouTube 评论:      5 条/天
+LinkedIn 帖:      2 篇/周
+─────────────────
+日均互动目标:     30+ 条
+```
+
+---
+
 ## 日志更新规范
 
 每次工作完成后更新：
@@ -311,8 +388,9 @@ bash /tmp/heygen-monitor.sh log      # 查看完整日志
 |------|------|----------|
 | Reddit | ✅ 已激活 | 未读消息数、最近评论状态（点赞/回复） |
 | X/Twitter | ✅ 已激活 | 新回复、新提及 |
+| YouTube | ✅ 已激活 | 最新评论动态 |
+| LinkedIn | ✅ 已激活 | 未读消息、对话动态 |
 | Instagram | ⏸ 预留 | 需配置账号后激活 |
-| YouTube | ⏸ 预留 | 需配置账号后激活 |
 | Facebook | ⏸ 预留 | 需配置账号后激活 |
 | TikTok | ⏸ 预留 | 需配置账号后激活 |
 

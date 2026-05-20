@@ -16,7 +16,63 @@
 
 ---
 
-## 英文素材库
+### 主动发帖策略（新增）
+
+| 类型 | 平台 | 内容方向 | 频率 |
+|------|------|---------|------|
+| 原创对比帖 | Reddit | "I tested X vs Y for 30 days — here's what worked" | 每周 2-3 篇 |
+| X Thread | X/Twitter | 🧵 多帖串联深度内容 | 每周 2 篇 |
+| YouTube 评论 | YouTube | AI 工具测评视频下补充价值 | 每天 5 条 |
+| LinkedIn 帖 | LinkedIn | AI 视频工作流分享 | 每周 2 篇 |
+
+## 原创帖模板
+
+### Reddit 对比评测帖
+
+框架：
+```
+Title: I spent [N days/weeks] testing [category] so you don't have to
+
+TL;DR: [Winner] > [Second] > [Third] (for [use case])
+
+1. [Winner] — Best for [use case]
+• [key pro 1]
+• [key pro 2]
+• [key pro 3]
+• Price: $X/mo
+
+2. [Competitor] — Better for [different use case]
+• ...
+
+My workflow now: [before vs after comparison]
+
+Happy to answer questions!
+
+*Full disclosure: Some tools have affiliate programs. I paid for all accounts myself.*
+```
+
+### X Thread 框架
+
+```
+Tweet 1: 🧵 I tested [N] [category] for [timeframe]. Here's what I found 👇
+
+Tweet 2: The winner: [Tool name]
+• [pro 1]
+• [pro 2]
+
+Tweet 3: Second place: [Tool name]
+• [differentiator]
+• [limitation]
+
+Tweet 4: The one to skip: [Tool name]
+• [why]
+
+Tweet 5: Bottom line: [summary recommendation]
+```
+
+---
+
+# 英文素材库
 
 ### Reddit Tier 1 — 曝光评论（蹭热度）
 
