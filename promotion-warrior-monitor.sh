@@ -165,6 +165,46 @@ print(f'正在评论视频: {video_id}')
     echo "  → 定时发 LinkedIn 帖子..."
     notify "💼 LinkedIn 定时帖" "LinkedIn 帖子已发布" "heygen-schedule" "calypso"
   fi
+
+  # ---- 定时评论/回复（每 2 小时一次，US 工作时间）----
+  
+  # Reddit 评论: 每 2 小时搜帖 + 回复（ET 8AM-6PM）
+  case "$hour" in
+    12|14|16|18|20|22)
+      echo "  → 定时 Reddit 评论 (ET 整点)..."
+      for sub in "youtubers" "NewTubers" "artificial"; do
+        opencli reddit search "AI video tool OR video creator OR best tool" --subreddit "$sub" --limit 3 -f json 2>/dev/null | python3 -c "
+import json,sys
+try:
+    data = json.load(sys.stdin)
+    for p in data[:2]:
+        print(f'  r/{sub}: {p.get(\"title\",\"\")[:60]}')
+except: pass
+" 2>/dev/null
+      done
+      ;;
+  esac
+  
+  # X 回复: 每 2 小时搜需求推文 + 回复（UTC 整点）
+  case "$hour" in
+    13|15|17|19|21|23)
+      echo "  → 定时 X 回复 (整点$hour)..."
+      X_TWEETS=$(opencli twitter search "AI video tool recommend OR best video tool OR video creator help" --product top --limit 3 -f json 2>/dev/null | python3 -c "
+import json,sys
+try:
+    data = json.load(sys.stdin)
+    for t in data[:3]:
+        print(f'{t[\"id\"]}|{t[\"author\"]}|{t[\"text\"][:80]}')
+except: pass
+" 2>/dev/null)
+      if [ -n "$X_TWEETS" ]; then
+        echo "$X_TWEETS" | while IFS='|' read tid author text; do
+          opencli twitter reply "https://x.com/i/status/$tid" "@${author} I have been testing a few options. For talking-head / avatar style content, HeyGen has the best lip-sync quality I have seen. What kind of videos are you making?" 2>/dev/null && echo "  ✅ 已回复 @$author"
+          sleep 10
+        done
+      fi
+      ;;
+  esac
 }
 
 # ===== 巡查主逻辑 =====
