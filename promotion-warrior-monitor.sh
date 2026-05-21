@@ -372,6 +372,13 @@ _run() {
   # 发送启动通知
   notify "✅ HeyGen 监控已启动" "每30分钟巡查全平台" "heygen" "calypso"
 
+  # 对齐到下一个整点启动
+  NOW_SEC=$(date '+%s')
+  NEXT_HOUR=$(( (($NOW_SEC / 3600) + 1) * 3600 ))
+  SLEEP_SEC=$(( $NEXT_HOUR - $NOW_SEC ))
+  echo "  首次巡查: $(date -r $NEXT_HOUR '+%H:%M') (等待 ${SLEEP_SEC}s)"
+  sleep $SLEEP_SEC
+
   while true; do
     echo ""
     echo "[$(date '+%Y-%m-%d %H:%M')] ======== 巡查开始 ========"
@@ -436,11 +443,11 @@ except: print(\"  (获取失败)\")
     fi
 
     # ----- 自动回复 DM (全平台) -----
-    autoreply "reddit" 2>/dev/null &
-    autoreply "x" 2>/dev/null &
+    autoreply "reddit" 2>/dev/null
+    autoreply "x" 2>/dev/null
 
     # ----- 定时发帖 -----
-    post_scheduled 2>/dev/null &
+    post_scheduled 2>/dev/null
 
     # ----- 3-7: 其他平台 -----
     # ----- 各平台状态 -----
@@ -458,7 +465,11 @@ except: print(\"  (获取失败)\")
     echo "  (🟢 已激活 — 评论)"
 
     echo "[$(date '+%H:%M')] ======== 巡查结束 ========"
-    sleep 1800
+    # 睡到下一个整点
+    NOW_SEC=$(date '+%s')
+    NEXT_HOUR=$(( (($NOW_SEC / 3600) + 1) * 3600 ))
+    SLEEP_SEC=$(( $NEXT_HOUR - $NOW_SEC ))
+    sleep $SLEEP_SEC
   done
 }
 
