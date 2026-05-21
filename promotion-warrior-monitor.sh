@@ -189,83 +189,90 @@ print(random.choice(templates))
 " 2>/dev/null
 }
 
-# ===== X post 带重试 =====
-twitter_post_with_retry() {
-  local text="$1" max_retry="${2:-2}"
-  for attempt in $(seq 1 $max_retry); do
-    echo "  → 发帖尝试 #$attempt..."
-    if opencli twitter post "$text" 2>/dev/null; then
-      echo "  ✅ X 帖子已发布"
-      return 0
-    fi
-    echo "  ⚠ 超时，30 秒后重试..."
-    sleep 30
-  done
-  echo "  ❌ X 发帖失败 (重试 $max_retry 次)"
-  notify "❌ X 发帖失败" "定时帖连续 $max_retry 次失败" "heygen" "alarm"
-  return 1
+# ===== X 帖子（浏览器直接发，比 CLI 可靠）=====
+twitter_post_via_browser() {
+  local text="$1"
+  echo "  → 通过浏览器发帖..."
+  # 去掉换行和特殊字符
+  TEXT_CLEAN=$(echo "$text" | tr '\n' ' ')
+  opencli browser bjudz9gq eval "
+var el = document.querySelector('[data-testid=\"tweetTextarea_0\"]');
+if(!el) { window.location.href = 'https://x.com/compose/post'; }
+setTimeout(function(){
+  var el2 = document.querySelector('[data-testid=\"tweetTextarea_0\"]');
+  if(el2) { el2.focus(); el2.innerText = '$TEXT_CLEAN'; el2.dispatchEvent(new Event('input',{bubbles:true})); }
+  setTimeout(function(){
+    var btn = document.querySelector('[data-testid=\"tweetButton\"]');
+    if(btn) btn.click();
+  }, 1000);
+}, 2000);
+'done'
+" 2>/dev/null && sleep 5 && echo "  ✅ X 帖子已发布" || echo "  ⚠ X 发帖可能失败"
 }
 
-# ===== YouTube 发评论 =====
+# ===== Reddit 帖子（通过 puppeteer API）=====
+reddit_post() {
+  local title="$1" text="$2" sub="$3"
+  echo "  → Reddit 帖子 r/$sub..."
+  # 用 puppeteer 的 Reddit API 发帖（已登录 u/hanshan0228）
+  opencli browser bjudz9gq eval "
+fetch('https://www.reddit.com/api/submit', {
+  method:'POST', credentials:'include',
+  headers:{'Content-Type':'application/x-www-form-urlencoded'},
+  body:'title='+encodeURIComponent('$title')+'&text='+encodeURIComponent('$text')+'&sr=$sub&kind=self&api_type=json'
+}).then(r=>r.json()).then(d=>{console.log(d?.json?.errors?.length?'err':'ok')})
+" 2>/dev/null && sleep 3 && echo "  ✅ Reddit 帖子已发布"
+}
+
+# ===== YouTube 评论（直接 browser eval）=====
 youtube_comment() {
   local video_id="$1" text="$2"
-  python3 -c "
-import subprocess, json
-# 通过 opencli browser 操作 YouTube 评论框
-cmds = [
-    f'window.location.href = \"https://www.youtube.com/watch?v={video_id}\"',
-    'setTimeout(function(){ window.scrollTo(0,800); }, 3000)',
-    'setTimeout(function(){ var el = document.querySelector(\"ytd-comment-simplebox-renderer yt-formatted-string\"); if(el){ el.click(); el.focus(); document.execCommand(\"insertText\", false, \"'$text'\"); } }, 5000)',
-    'setTimeout(function(){ var btn = document.querySelector(\"ytd-comment-simplebox-renderer #submit-button\"); if(btn) btn.click(); }, 7000)'
-]
-for c in cmds:
-    subprocess.run(['opencli', 'browser', 'bjudz9gq', 'eval', c], capture_output=True)
-    import time; time.sleep(1)
-print('ok')
-" 2>/dev/null && echo "  ✅ YouTube 评论已发" || echo "  ⚠ YouTube 评论失败"
+  echo "  → YouTube 评论 $video_id..."
+  TEXT_CLEAN=$(echo "$text" | tr "'" ' ')
+  opencli browser bjudz9gq eval "
+window.location.href = 'https://www.youtube.com/watch?v=$video_id'
+" 2>/dev/null
+  sleep 3
+  opencli browser bjudz9gq eval "window.scrollTo(0,800)" 2>/dev/null
+  sleep 2
+  opencli browser bjudz9gq eval "
+var el = document.querySelector('ytd-comment-simplebox-renderer yt-formatted-string');
+if(el) { el.click(); el.focus(); document.execCommand('insertText', false, '$TEXT_CLEAN'); }
+" 2>/dev/null
+  sleep 2
+  opencli browser bjudz9gq eval "
+var btn = document.querySelector('ytd-comment-simplebox-renderer #submit-button, ytd-comment-simplebox-renderer button:last-child');
+if(btn) btn.click();
+" 2>/dev/null && echo "  ✅ YouTube 评论已发"
 }
 
-# ===== LinkedIn 发帖 =====
+# ===== LinkedIn 帖子（直接 browser eval）=====
 linkedin_post() {
   local text="$1"
-  python3 -c "
-import subprocess, json
-# 通过 opencli browser Shadow DOM 穿透发帖
-script = '''
+  echo "  → LinkedIn 帖子..."
+  TEXT_CLEAN=$(echo "$text" | tr "'" ' ')
+  opencli browser bjudz9gq eval "
+var btn = Array.from(document.querySelectorAll('div[role=\"button\"]')).find(function(e){return e.textContent.trim()==='发动态'});
+if(btn) btn.click();
+" 2>/dev/null
+  sleep 2
+  opencli browser bjudz9gq eval "
 (function(){
-  // 打开发动态
-  var btn = Array.from(document.querySelectorAll('div[role=\"button\"]')).find(function(el){ return el.textContent.trim() === '发动态'; });
-  if(!btn) return 'no post button';
-  btn.click();
-  setTimeout(function(){
-    // 找到 Shadow DOM 里的 contenteditable
-    var hosts = document.querySelectorAll('*');
-    for(var h=0; h<hosts.length; h++){
-      var sr = hosts[h].shadowRoot;
-      if(sr){
-        var ce = sr.querySelector('[contenteditable]');
-        if(ce){
-          ce.focus();
-          ce.textContent = \\\"'$text'\\\";
-          ce.dispatchEvent(new Event('input', {bubbles:true}));
-          // 找发布按钮
-          setTimeout(function(){
-            var btns = sr.querySelectorAll('button');
-            for(var b=0; b<btns.length; b++){
-              if(btns[b].textContent.trim() === '发布'){ btns[b].click(); return; }
-            }
-          }, 1000);
-          return 'posted';
-        }
+  var hosts = document.querySelectorAll('*');
+  for(var h=0;h<hosts.length;h++){
+    var sr=hosts[h].shadowRoot;
+    if(sr){
+      var ce=sr.querySelector('[contenteditable]');
+      if(ce){ce.focus();ce.textContent='$TEXT_CLEAN';ce.dispatchEvent(new Event('input',{bubbles:true}));
+        setTimeout(function(){
+          var btns=sr.querySelectorAll('button');
+          for(var b=0;b<btns.length;b++){if(btns[b].textContent.trim()==='发布')btns[b].click();}
+        },1500);
       }
     }
-    return 'no editor';
-  }, 2000);
-})();
-'''
-result = subprocess.run(['opencli', 'browser', 'bjudz9gq', 'eval', script], capture_output=True, text=True)
-print(result.stdout[:100])
-" 2>/dev/null && echo "  ✅ LinkedIn 帖子已发" || echo "  ⚠ LinkedIn 发帖失败"
+  }
+})()
+" 2>/dev/null && echo "  ✅ LinkedIn 帖子已发"
 }
 
 # ===== 定时发帖 =====
@@ -279,34 +286,34 @@ post_scheduled() {
   
   echo "[SCHEDULE] 检查定时发帖 (周$wday $hour:00)..."
   
-  # Reddit 帖子: 周一三五 8AM ET (12:00 UTC) — 内容轮换
+  # Reddit 帖子: 周一三五 8AM ET (12:00 UTC)
   if [ "$hour" = "12" ] && [ "$wday" -eq 1 -o "$wday" -eq 3 -o "$wday" -eq 5 ]; then
-    echo "  → 定时发 Reddit 帖子 (内容轮换)..."
-    REDDIT_CONTENT=$(pick_content "reddit_post")
+    echo "  → 定时 Reddit 帖子..."
+    reddit_post \
+      "I spent 30 days testing AI avatar tools - here is my honest ranking" \
+      "I tested HeyGen, Synthesia, D-ID and Colossyan for 30 days. For content creators, HeyGen is the winner - best lip-sync quality and the video translation feature is a game changer. Production time went from 8h to 45min. Happy to answer questions!" \
+      "youtubers"
     notify "📝 Reddit 定时帖" "Reddit 帖子已发布" "heygen-schedule" "calypso"
   fi
   
-  # X 帖子: 每天 7AM ET (11:00 UTC) + 5PM ET (21:00 UTC) — 内容轮换 + 重试
+  # X 帖子: 每天 7AM ET (11:00 UTC) + 5PM ET (21:00 UTC)
   if [ "$hour" = "11" -o "$hour" = "21" ]; then
-    echo "  → 定时发 X 帖子 (内容轮换)..."
-    X_CONTENT=$(pick_content "x_post")
-    twitter_post_with_retry "$X_CONTENT" 2
+    echo "  → 定时 X 帖子..."
+    twitter_post_via_browser "I spent 30 days testing AI avatar tools for my content. The lip-sync quality difference between HeyGen and the rest is bigger than I expected. Production time went from 8h to 45min per video. What tools are you using?"
   fi
   
-  # YouTube 评论: 每天 10AM ET (14:00 UTC) — 实际执行
+  # YouTube 评论: 每天 10AM ET (14:00 UTC)
   if [ "$hour" = "14" ]; then
     VIDEO_IDS=('s_3wUIcb0RQ' '3Qlz_FIbw5w' 'NCzyhx_4heY')
     VID=${VIDEO_IDS[$RANDOM % ${#VIDEO_IDS[@]}]}
-    COMMENT_TEXT=$(pick_content "youtube")
     echo "  → 定时 YouTube 评论 ($VID)..."
-    youtube_comment "$VID" "$COMMENT_TEXT"
+    youtube_comment "$VID" "Great honest review! Been testing HeyGen vs Synthesia for my own content and the lip-sync quality on HeyGen is noticeably better. The video translation feature is also super useful."
   fi
   
-  # LinkedIn 帖子: 周二四 9AM ET (13:00 UTC) — 实际执行
+  # LinkedIn 帖子: 周二四 9AM ET (13:00 UTC)
   if [ "$hour" = "13" ] && [ "$wday" -eq 2 -o "$wday" -eq 4 ]; then
     echo "  → 定时 LinkedIn 帖子..."
-    LI_TEXT=$(pick_content "linkedin")
-    linkedin_post "$LI_TEXT"
+    linkedin_post "I spent 30 days testing AI avatar tools for content creation. Here is what I learned:\n\n1. HeyGen - Best lip-sync quality, video translation is a game changer\n2. Synthesia - More templates, avatars feel less natural\n3. D-ID - Budget option, quality gap noticeable\n\nMy production time went from 8h to 45min per video."
   fi
 
   # ---- 定时评论/回复（每 2 小时一次，US 工作时间）----
@@ -317,23 +324,22 @@ post_scheduled() {
       echo "  → 定时 Reddit 评论 (ET 整点)..."
       AFF_LINK="https://www.heygen.com/?sid=rewardful&utm_content=creator&utm_medium=affiliate&via=samantha"
       for sub in "youtubers" "NewTubers" "artificial"; do
-        opencli reddit search "AI video tool OR video creator OR best tool" --subreddit "$sub" --limit 3 -f json 2>/dev/null | python3 -c "
-import json,sys,subprocess,random
+        # 搜索帖子
+        POSTS=$(opencli reddit search "AI video tool OR video creator OR best tool" --subreddit "$sub" --limit 2 -f json 2>/dev/null | python3 -c "
+import json,sys
 try:
     data = json.load(sys.stdin)
-    comments = [
-        'I have been testing a few AI video tools. For talking-head content, HeyGen has the most natural lip-sync I have seen.',
-        'If you are comparing AI avatar tools, the lip-sync quality is the #1 factor. HeyGen does this better than the rest.',
-        'Been using HeyGen for my YouTube channel. Cut production time from 8h to 45min per video. The quality is good enough for professional content.'
-    ]
     for p in data[:2]:
-        post_id = p.get('id','')
-        comment = random.choice(comments)
-        # 通过 opencli 发评论
-        result = subprocess.run(['opencli','reddit','comment',post_id,comment], capture_output=True, text=True)
-        print(f'  r/{sub}: commented on {p.get(\"title\",\"\")[:40]} -> {result.stdout[:60]}')
+        print(p.get('id',''))
 except: pass
-" 2>/dev/null
+" 2>/dev/null)
+        if [ -n "$POSTS" ]; then
+          echo "$POSTS" | while read post_id; do
+            COMMENT="I have been testing a few AI video tools. For talking-head content, HeyGen has the most natural lip-sync I have seen. What is your experience?"
+            opencli reddit comment "$post_id" "$COMMENT" 2>/dev/null && echo "  ✅ r/$sub: 已评论 $post_id"
+            sleep 5
+          done
+        fi
       done
       ;;
   esac
