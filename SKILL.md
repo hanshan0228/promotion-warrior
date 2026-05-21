@@ -439,6 +439,26 @@ bash /tmp/heygen-monitor.sh log      # 查看完整日志
 模板 C: "If you're struggling with talking-head videos, HeyGen is the most natural I've tested."
 ```
 
+### 任务执行方式（v2.2+）
+
+所有定时任务不再使用 `setTimeout` 嵌套，而是拆分为 **顺序执行的 eval 调用**，中间用 `sleep` 等待：
+
+```
+❌ 旧方式: eval("setTimeout(填文字), setTimeout(点按钮)")
+   → setTimeout 回调在 eval 返回后不执行
+
+✅ 新方式: eval(导航) → sleep → eval(填文字) → sleep → eval(点按钮)
+   → 每一步完成后才执行下一步
+```
+
+**已验证通过的任务：**
+- Reddit 未读检查 ✅
+- X 互动检查 ✅
+- Reddit 评论回复 ✅
+- X 推文回复 ✅
+- X 发帖 ✅
+- YouTube 评论 ✅
+
 ### 失败重试 & 告警
 
 | 场景 | 行为 |
