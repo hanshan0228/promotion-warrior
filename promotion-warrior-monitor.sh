@@ -193,21 +193,18 @@ print(random.choice(templates))
 twitter_post_via_browser() {
   local text="$1"
   echo "  → 通过浏览器发帖..."
-  # 去掉换行和特殊字符
-  TEXT_CLEAN=$(echo "$text" | tr '\n' ' ')
-  opencli browser bjudz9gq eval "
-var el = document.querySelector('[data-testid=\"tweetTextarea_0\"]');
-if(!el) { window.location.href = 'https://x.com/compose/post'; }
-setTimeout(function(){
-  var el2 = document.querySelector('[data-testid=\"tweetTextarea_0\"]');
-  if(el2) { el2.focus(); el2.innerText = '$TEXT_CLEAN'; el2.dispatchEvent(new Event('input',{bubbles:true})); }
-  setTimeout(function(){
-    var btn = document.querySelector('[data-testid=\"tweetButton\"]');
-    if(btn) btn.click();
-  }, 1000);
-}, 2000);
-'done'
-" 2>/dev/null && sleep 5 && echo "  ✅ X 帖子已发布" || echo "  ⚠ X 发帖可能失败"
+  TEXT_CLEAN=$(echo "$text" | sed "s/'/’/g")
+  # 先导航到发帖页
+  opencli browser bjudz9gq eval "window.location.href='https://x.com/compose/post'" 2>/dev/null
+  sleep 4
+  # 用 execCommand insertText 填文字（触发 React 更新）
+  opencli browser bjudz9gq eval "document.querySelector('[data-testid=\"tweetTextarea_0\"]')?.focus(); document.execCommand('insertText', false, '$TEXT_CLEAN')" 2>/dev/null
+  sleep 2
+  # 点击发帖按钮
+  opencli browser bjudz9gq eval "document.querySelector('[data-testid=\"tweetButton\"]')?.click()" 2>/dev/null
+  sleep 3
+  # 验证是否发出
+  opencli browser bjudz9gq eval "!document.querySelector('[data-testid=\"tweetButton\"]') ? 'posted' : 'still on compose'" 2>/dev/null | grep -q "posted" && echo "  ✅ X 帖子已发布" || echo "  ⚠ X 发帖可能失败"
 }
 
 # ===== Reddit 帖子（通过 puppeteer API）=====
@@ -379,10 +376,8 @@ _run() {
   notify "✅ HeyGen 监控已启动" "每30分钟巡查全平台" "heygen" "calypso"
 
   # 对齐到下一个整点启动
-  NOW_SEC=$(date '+%s')
-  NEXT_HOUR=$(( (($NOW_SEC / 3600) + 1) * 3600 ))
-  SLEEP_SEC=$(( $NEXT_HOUR - $NOW_SEC ))
-  echo "  首次巡查: $(date -r $NEXT_HOUR '+%H:%M') (等待 ${SLEEP_SEC}s)"
+  SLEEP_SEC=$(( 3600 - ($(date '+%M') * 60 + $(date '+%S')) ))
+  echo "  首次巡查: 等待 ${SLEEP_SEC}s"
   sleep $SLEEP_SEC
 
   while true; do
@@ -472,9 +467,7 @@ except: print(\"  (获取失败)\")
 
     echo "[$(date '+%H:%M')] ======== 巡查结束 ========"
     # 睡到下一个整点
-    NOW_SEC=$(date '+%s')
-    NEXT_HOUR=$(( (($NOW_SEC / 3600) + 1) * 3600 ))
-    SLEEP_SEC=$(( $NEXT_HOUR - $NOW_SEC ))
+    SLEEP_SEC=$(( 3600 - ($(date '+%M') * 60 + $(date '+%S')) ))
     sleep $SLEEP_SEC
   done
 }
